@@ -172,8 +172,6 @@ class CPFLiveConsult:
 
             return (False, "")
 
-    # ---------------- RUNNER (CTRL+C FIX AQUI) ----------------
-
     async def run_playwright(self, candidates: list[str]) -> list[dict]:
 
         results = []
