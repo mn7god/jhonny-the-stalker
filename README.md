@@ -10,11 +10,11 @@ This programm is not intended, nor does it aim, to cause harm to individuals, or
 
 ## Installation
 
-´´´bash
+```bash
 git clone https://github.com/mn7god/jhonny-the-stalker
 cd jhonny-the-stalker
 pip install requirements.txt
 python3 jts.py
-´´´
+```
 After running the python script type 'help' on the console to show available commands.
 
