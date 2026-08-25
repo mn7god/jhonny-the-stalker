@@ -1,0 +1,6 @@
+instagrapi
+requests
+playwright
+aiohttp
+cmd2
+maigret
