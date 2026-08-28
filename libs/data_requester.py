@@ -8,7 +8,7 @@ from .jts_utils import Utils as ut
 from .user_agents import return_ua
 from .cpf_finder import CPFLiveConsult
 from .validator import Validator as val
-from .playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright
 
 apis = {
     'number': "http://apilayer.net/api/validate?",
