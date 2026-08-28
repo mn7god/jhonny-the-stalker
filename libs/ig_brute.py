@@ -84,8 +84,9 @@ class IgTools:
         return (IgTools.user_agents[r], IgTools.devices[r])
         
     @staticmethod
-    def read_wordlist(wordlist: Path):
+    def read_wordlist(wordlist):
         try:
+            wordlist = Path(wordlist)
             if wordlist.is_file() and wordlist.exists():
                 data = wordlist.read_text().splitlines()
                 return [password for password in data if len(password) >= 6]
@@ -108,8 +109,7 @@ class IgInteract:
         else:
             raise ValueError("Invalid wordlist provided.")
             
-        if timeout >= 5 and timeout < 60:
-            self.timeout = timeout
+        self.timeout = timeout if 5 <= timeout <= 60 else 5
             
         self.print_it = PrintIt
             
@@ -163,6 +163,4 @@ class IgInteract:
                     
                 attempts += 1
                 time.sleep(random.uniform(0, self.timeout))
-                
-        
-                            
+
