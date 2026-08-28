@@ -5,7 +5,7 @@ import itertools
 import asyncio
 import aiohttp
 import contextlib
-from user_agents import return_ua
+from .user_agents import return_ua
 from playwright.async_api import async_playwright, Page, Browser
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
