@@ -58,6 +58,8 @@ class PrintIt:
         print(f"[{Color.YELLOW}PROCESS{Color.RESET}]: {msg}")
     def info(msg):
         print(f"[{Color.WHITE}INFO{Color.RESET}]: {msg}")
+    def warning(msg):
+        print(f"[{Color.YELLOW}WARNING{Color.RESET}]: {msg}")
     def question(msg):
         i = input(f"[{Color.GRAY}QUESTION{Color.RESET}]: {msg}")
         return i
