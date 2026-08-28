@@ -153,7 +153,7 @@ class IgInteract:
                         rotation += 1
                     
                     else:
-                        self.print_it.error(f"Username \"{self.username}\" dont exists in ig.")
+                        self.print_it.error(f"Username \"{self.username}\" dont exists in ig or youve been blocked.")
                         break
                         
                 except TwoFactorRequired:
