@@ -132,7 +132,7 @@ class IgInteract:
                         user_agent, headers = IgTools.random_ig_user_agent()
                         if rotation > 2:
                             self.print_it.info(f"Total Attempts: {attempts}")
-                            self.print_it.ig_error_loop()
+                            
                         rotation += 1
                         
                     else:
