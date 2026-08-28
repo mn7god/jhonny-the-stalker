@@ -279,5 +279,3 @@ class Requester:
                 run(["maigret", v, "--auto-disable", "--timeout", "10", "--retries", "0", "--no-extracting"])
             except KeyboardInterrupt:
                 print("User aborted.")
-
-print(Requester('87271656553').cpf())
