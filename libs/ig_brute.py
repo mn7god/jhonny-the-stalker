@@ -137,7 +137,16 @@ class IgInteract:
                         
                     else:
                         self.print_it.error(f"Username \"{self.username}\" dont exists or you have been blocked in ig.")
-                        break
+                        r = self.print_it.yes_no(f"Do you want to continue this attack? the program will wait the blocked timeout")
+                        if r:
+                            random_timeout = random.randint(180,2800)
+                            for seconds in range(random_timeout, 0, -1):
+                                self.print_it.info(f"Waiting {seconds} seconds for continue.")
+                                time.sleep(1)
+                                
+                        else:
+                            self.print_it.error(f"User stoped.")
+                            break
 
                 except TwoFactorRequired:
                     self.print_it.error(f"2FA Required to login in this account, user:{self.username}:password:{item}")
