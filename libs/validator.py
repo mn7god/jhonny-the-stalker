@@ -70,13 +70,6 @@ class Validator:
         if len(clean_cep) == 8 and CEP_RE.fullmatch(clean_cep):
             return clean_cep
             
-    def cpf_validator(self):
-        clean_cpf = self.clean_input(self.data, "-.")
-        cpf_val = self.cpf_validate(clean_cpf)
-        cpf_len = len(clean_cpf)
-        if cpf_val and cpf_len == 11:
-            return (self.format_cpf(clean_cpf), clean_cpf)
-            
     def name_validator(self):
         if NAME_RE.fullmatch(self.data):
             return self.data
