@@ -167,25 +167,6 @@ class Requester:
                 
         return {"error": "invalid_cep"}
         
-    def cpf(self):
-        v = val(self.data).cpf_validator()
-        if v != None:
-            for item in v:
-                data = load_data(item)
-                if data != []:
-                    return data
-                    
-        return {"error": "invalid_cpf"}
-        
-    def name(self):
-        v = val(self.data).name_validator()
-        if v != None:
-            data = load_data(v)
-            if data:
-                return data
-                
-        return {"error": "invalid_name"}
-        
     def name_webmii(self):
     
         v = val(self.data).name_validator()
