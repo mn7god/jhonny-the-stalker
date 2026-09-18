@@ -22,7 +22,7 @@ class Parser:
 	username_parser.add_argument('USERNAME', type=str, help="Username to search.")
 	
 	name_webmii_parser = cmd2.Cmd2ArgumentParser(description='Webmii Name Searcher.')
-	name_webmii_parser.add_argument('NAME', nargs='+')
+	name_webmii_parser.add_argument('-n','--name', nargs='+', help="Name")
 	name_webmii_parser.add_argument('-s', '--strings', nargs='+', help="Strings to search.")
 	
 	number_parser = cmd2.Cmd2ArgumentParser(description='Number Searcher.')
