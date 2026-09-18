@@ -14,7 +14,7 @@ This programm is not intended, nor does it aim, to cause harm to individuals, or
 git clone https://github.com/mn7god/jhonny-the-stalker
 cd jhonny-the-stalker
 pip install requirements.txt
-playwright install
+playwright install chromium
 python3 jts.py
 ```
 After running the python script type 'help' on the console to show available commands.
