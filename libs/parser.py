@@ -13,9 +13,6 @@ class Parser:
 	ip_parser = cmd2.Cmd2ArgumentParser(description='IP Searcher.')
 	ip_parser.add_argument('IP', type=str)
 	
-	name_parser = cmd2.Cmd2ArgumentParser(description='Name Searcher.')
-	name_parser.add_argument('NAME', nargs='+')
-	
 	ig_bruter_parser = cmd2.Cmd2ArgumentParser(description='Name Searcher.')
 	ig_bruter_parser.add_argument('-u', '--username', type=str, help="Username to bruteforce on")
 	ig_bruter_parser.add_argument('-w', '--wordlist', type=str, help="Wordlist path.")
