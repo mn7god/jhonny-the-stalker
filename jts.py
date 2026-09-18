@@ -91,9 +91,9 @@ class Console(cmd2.Cmd):
     @cmd2.with_category("Users")
     @cmd2.with_argparser(Parser.name_webmii_parser)
     def do_webmii_name(self, args):
-        if args.NAME and len(args.NAME) in (2,3,4,5):
+        if args.name and len(args.name) in (2,3,4,5):
             pt.info("Starting Webmii name search...")
-            data = Requester(" ".join(args.NAME)).name_webmii()
+            data = Requester(" ".join(args.name)).name_webmii()
             if "error" not in data:
                 
                 if args.strings:
