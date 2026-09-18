@@ -23,7 +23,7 @@ class Parser:
 	
 	name_webmii_parser = cmd2.Cmd2ArgumentParser(description='Webmii Name Searcher.')
 	name_webmii_parser.add_argument('-n','--name', nargs='+', help="Name")
-	name_webmii_parser.add_argument('-s', '--strings', nargs='+', action="store_true", help="Strings to search.")
+	name_webmii_parser.add_argument('-s', '--strings', type=str, action="store_true", help="Strings to search.")
 	
 	number_parser = cmd2.Cmd2ArgumentParser(description='Number Searcher.')
 	number_parser.add_argument('NUMBER', type=str)
