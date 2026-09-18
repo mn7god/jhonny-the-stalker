@@ -69,26 +69,6 @@ class Console(cmd2.Cmd):
         pt.invalid_usage("ip")
             
     @cmd2.with_category("People")
-    @cmd2.with_argparser(Parser.name_parser)
-    def do_name(self, args):
-        if args.NAME and len(args.NAME) in (1,2,3,4,5):
-            pt.info("Starting name search...")
-            data = Requester(" ".join(args.NAME)).name()
-            i = 0
-            try:
-                for item in data:
-                    print(f"{cl.GREEN}Result-{i}{cl.RESET}: {item}")
-                    time.sleep(0.1)
-                    i += 1
-                    
-                return
-            
-            except Exception:
-                pt.error("Error in API request.");return
-        
-        pt.invalid_usage("name")
-            
-    @cmd2.with_category("People")
     @cmd2.with_argparser(Parser.ig_bruter_parser)
     def do_ig_bruteforcer(self, args):
         if args.username != None and args.wordlist != None:
