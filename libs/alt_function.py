@@ -9,6 +9,7 @@ from .user_agents import return_ua
 from playwright.async_api import async_playwright, Page, Browser
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
+
 PORTAL_BASE   = "https://portaldatransparencia.gov.br"
 SEARCH_URL    = "https://busca.portaldatransparencia.gov.br/busca/pessoa-fisica"
 STATIC_TOKEN  = "wtwLC1ItJOLhvc2n6rhY"
@@ -35,42 +36,7 @@ Object.defineProperty(navigator, 'languages', {get: () => ['pt-BR','pt','en-US',
 Object.defineProperty(navigator, 'platform', {get: () => 'Win32'});
 window.chrome = {runtime: {}, app: {isInstalled: false}};
 """
-class BrowserPool:
-    def __init__(self, playwright, max_contexts: int = 60):
-        self._p = playwright
-        self._max = max_contexts
-        self._count = 0
-        self._browser: Browser | None = None
-        self._lock = asyncio.Lock()
 
-    async def get(self) -> Browser:
-        async with self._lock:
-            if self._browser is None or self._count >= self._max:
-                if self._browser is not None:
-                    with contextlib.suppress(Exception):
-                        await self._browser.close()
-                self._browser = await self._p.chromium.launch(
-                    headless=True,
-                    args=[
-                        "--disable-dev-shm-usage",
-                        "--disable-gpu",
-                        "--no-sandbox",
-                        "--disable-extensions",
-                        "--disable-background-networking",
-                        "--js-flags=--max-old-space-size=256",
-                    ],
-                )
-                self._count = 0
-            self._count += 1
-            return self._browser
-
-    async def close(self):
-        async with self._lock:
-            if self._browser is not None:
-                with contextlib.suppress(Exception):
-                    await self._browser.close()
-                self._browser = None
-                self._count = 0
 
 class CPFLiveConsult:
 
@@ -169,7 +135,7 @@ class CPFLiveConsult:
                     nonlocal done
                     if done:
                         return
-                    if _API_HOST in response.url and response.status == 200:
+                    if "busca.api-privada-legal.com" in response.url and response.status == 200:
                         try:
                             data = await response.json()
                             captured["json"] = data
@@ -182,7 +148,7 @@ class CPFLiveConsult:
     
                 try:
                     await page.goto(
-                        f"{_PORTAL_BASE}/pessoa-fisica/busca/lista"
+                        f"{PORTAL_BASE}/pessoa-fisica/busca/lista"
                         f"?termo={cpf}&pagina=1&tamanhoPagina=10",
                         wait_until="domcontentloaded",
                         timeout=15000,
@@ -218,56 +184,64 @@ class CPFLiveConsult:
                 return self._parse_json(captured["json"])
     
             return (False, "")
-    
-    
+
+    # ---------------- RUNNER (CTRL+C FIX AQUI) ----------------
+
     async def run_playwright(self, candidates: list[str]) -> list[dict]:
-        results: list[dict] = []
+
+        results = []
         lock = asyncio.Lock()
         sem = asyncio.Semaphore(self.workers)
+
         search_term = self.string.upper() if self.string else None
-    
+
         async with async_playwright() as p:
-            pool = BrowserPool(p, max_contexts=60)
-            tasks: list[asyncio.Task] = []
-    
-            async def process(cpf: str):
+            browser = await p.chromium.launch(headless=True)
+
+            async def process(cpf):
                 try:
                     formatted = self.fmt(cpf)
-    
-                    browser = await pool.get()
+
                     found, name = await self._query_playwright(browser, cpf, sem)
-    
+
                     if not found or not name:
                         return
-    
+
                     if search_term and search_term not in name.upper():
                         return
-    
+
                     async with lock:
-                        results.append({"cpf": formatted, "name": name})
+                        results.append({
+                            "cpf": formatted,
+                            "name": name
+                        })
                         print(f"CPF: {formatted} NAME: {name}")
-    
+
                 except asyncio.CancelledError:
                     return
                 except Exception as e:
                     print(f"[ERROR CPF {cpf}] {e}")
-    
+
             tasks = [asyncio.create_task(process(cpf)) for cpf in candidates]
-    
+
             try:
                 await asyncio.gather(*tasks, return_exceptions=True)
+
             except KeyboardInterrupt:
                 print("\n[!] CTRL+C detectado, cancelando tasks...")
+
                 for t in tasks:
                     t.cancel()
+
                 with contextlib.suppress(Exception):
                     await asyncio.gather(*tasks, return_exceptions=True)
+
             finally:
                 with contextlib.suppress(Exception):
-                    await pool.close()
-    
+                    await browser.close()
+
         return results
-    
+
     def get_results(self):
         try:
             candidates = self.generate_candidates(self.mask)
