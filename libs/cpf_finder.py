@@ -107,70 +107,84 @@ class CPFLiveConsult:
         async with sem:
             captured: dict = {}
             ready = asyncio.Event()
-
-            context = await browser.new_context(
-                user_agent=_API_HEADERS["User-Agent"],
-                viewport={"width": 1280, "height": 800},
-                locale="pt-BR",
-                timezone_id="America/Sao_Paulo",
-                extra_http_headers={"Accept-Language": "pt-BR,pt;q=0.9"},
-            )
-
-            await context.add_init_script(_STEALTH_JS)
-            page: Page = await context.new_page()
-
-            async def block_route(route):
-                if route.request.resource_type in _BLOCK_TYPES:
-                    await route.abort()
-                else:
-                    await route.continue_()
-
-            await page.route("**/*", block_route)
-
-            async def on_response(response):
-                if "busca.portaldatransparencia.gov.br" in response.url and response.status == 200:
-                    try:
-                        data = await response.json()
-                        captured["json"] = data
-                        ready.set()
-                    except Exception:
-                        pass
-
-            page.on("response", on_response)
-            
+            done = False
+            context = None
+            page = None
+    
             try:
-                await page.goto(
-                    f"{PORTAL_BASE}/pessoa-fisica/busca/lista?termo={cpf}&pagina=1&tamanhoPagina=10",
-                    wait_until="commit",
-                    timeout=15000
+                context = await browser.new_context(
+                    user_agent=_API_HEADERS["User-Agent"],
+                    viewport={"width": 1024, "height": 768},
+                    locale="pt-BR",
+                    timezone_id="America/Sao_Paulo",
+                    extra_http_headers={"Accept-Language": "pt-BR,pt;q=0.9"},
                 )
-            except asyncio.TimeoutError:
-                await page.close()
+                await context.add_init_script(_STEALTH_JS)
+                page = await context.new_page()
+    
+                async def block_route(route):
+                    if route.request.resource_type in _BLOCK_TYPES:
+                        await route.abort()
+                    else:
+                        await route.continue_()
+    
+                await page.route("**/*", block_route)
+    
+                async def on_response(response):
+                    nonlocal done
+                    if done:
+                        return
+                    if "busca.api-privada-legal.com" in response.url and response.status == 200:
+                        try:
+                            data = await response.json()
+                            captured["json"] = data
+                            done = True
+                            ready.set()
+                        except Exception:
+                            pass
+    
+                page.on("response", on_response)
+    
+                try:
+                    await page.goto(
+                        f"{PORTAL_BASE}/pessoa-fisica/busca/lista"
+                        f"?termo={cpf}&pagina=1&tamanhoPagina=10",
+                        wait_until="domcontentloaded",
+                        timeout=15000,
+                    )
+                except (asyncio.TimeoutError, PlaywrightTimeoutError):
+                    return (False, "")
+    
+                with contextlib.suppress(Exception):
+                    btn = await page.wait_for_selector(
+                        'button[aria-label="Enviar dados do formulário de busca"]',
+                        timeout=5_000,
+                    )
+                    if btn is not None:
+                        await btn.click()
+    
+                with contextlib.suppress(asyncio.TimeoutError):
+                    await asyncio.wait_for(ready.wait(), timeout=20.0)
+    
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:
+                print(f"[ERR {cpf}] {e}")
                 return (False, "")
-            except PlaywrightTimeoutError:
-                return (False, "")
-
-            try:
-                btn = await page.wait_for_selector(
-                    'button[aria-label="Enviar dados do formulário de busca"]',
-                    timeout=10_000,
-                )
-                await btn.click()
-            except Exception:
-                pass
-
-            try:
-                await asyncio.wait_for(ready.wait(), timeout=20.0)
-            except asyncio.TimeoutError:
-                pass
-
-            await page.close()
-            await context.close()
-
+            finally:
+                if page is not None:
+                    with contextlib.suppress(Exception):
+                        await page.close()
+                if context is not None:
+                    with contextlib.suppress(Exception):
+                        await context.close()
+    
             if "json" in captured:
                 return self._parse_json(captured["json"])
-
+    
             return (False, "")
+
+    # ---------------- RUNNER (CTRL+C FIX AQUI) ----------------
 
     async def run_playwright(self, candidates: list[str]) -> list[dict]:
 
