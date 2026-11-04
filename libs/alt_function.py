@@ -9,7 +9,6 @@ from .user_agents import return_ua
 from playwright.async_api import async_playwright, Page, Browser
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
-
 PORTAL_BASE   = "https://portaldatransparencia.gov.br"
 SEARCH_URL    = "https://busca.portaldatransparencia.gov.br/busca/pessoa-fisica"
 STATIC_TOKEN  = "wtwLC1ItJOLhvc2n6rhY"
@@ -36,7 +35,42 @@ Object.defineProperty(navigator, 'languages', {get: () => ['pt-BR','pt','en-US',
 Object.defineProperty(navigator, 'platform', {get: () => 'Win32'});
 window.chrome = {runtime: {}, app: {isInstalled: false}};
 """
+class BrowserPool:
+    def __init__(self, playwright, max_contexts: int = 60):
+        self._p = playwright
+        self._max = max_contexts
+        self._count = 0
+        self._browser: Browser | None = None
+        self._lock = asyncio.Lock()
 
+    async def get(self) -> Browser:
+        async with self._lock:
+            if self._browser is None or self._count >= self._max:
+                if self._browser is not None:
+                    with contextlib.suppress(Exception):
+                        await self._browser.close()
+                self._browser = await self._p.chromium.launch(
+                    headless=True,
+                    args=[
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--no-sandbox",
+                        "--disable-extensions",
+                        "--disable-background-networking",
+                        "--js-flags=--max-old-space-size=256",
+                    ],
+                )
+                self._count = 0
+            self._count += 1
+            return self._browser
+
+    async def close(self):
+        async with self._lock:
+            if self._browser is not None:
+                with contextlib.suppress(Exception):
+                    await self._browser.close()
+                self._browser = None
+                self._count = 0
 
 class CPFLiveConsult:
 
@@ -233,7 +267,6 @@ class CPFLiveConsult:
                     await pool.close()
     
         return results
-    
     
     def get_results(self):
         try:
